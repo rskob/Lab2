@@ -1,5 +1,6 @@
 import os
 from tools import WorkerException
+from costs import Expense
 
 
 class WorkerData:
@@ -24,13 +25,18 @@ class WorkerData:
         with open(self.categories_filepath, "a") as file:
             file.write(category_name + "\n")
 
+    def save_expense(self, expense: Expense):
+        with open(self.expenses_filepath, "a") as file:
+            file.write(expense.to_csv() + "\n")
 
 
 class Worker:
-    commands = {"add-category": "add_category"}
+    commands = {
+        "add-category": "add_category",
+        "add": "add_expense",
+    }
 
     def __init__(self, storage):
-        self.categories = []
         self.storage = storage
 
     def execute(self, arguments):
@@ -53,3 +59,14 @@ class Worker:
         else:
             self.storage.save_category(category_name)
 
+    def add_expense(self, arguments):
+        if (amount := len(arguments)) != 3:
+            raise WorkerException(f"Команда 'add' принимает на вход 3 аргумента. Было передано ({amount})")
+
+        cost, category_name, name = arguments
+
+        if category_name not in self.storage.get_categories():
+            raise WorkerException(f"Категория '{category_name}' не существует")
+
+        expense = Expense(name=name, cost=cost, category_name=category_name)
+        self.storage.save_expense(expense)

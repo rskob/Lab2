@@ -1,0 +1,5 @@
+ex1;222.0;first
+ex1;222.0;first
+ex1;222.0;second
+ex2;22552.0;second
+ex2;22552.66;second
