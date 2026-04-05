@@ -16,7 +16,6 @@ class WorkerData:
         open(self.expenses_filepath, "a").close()
         open(self.categories_filepath, "a").close()
 
-
     def get_categories(self):
         with open(self.categories_filepath, "r") as file:
             return [line.strip() for line in file.readlines()]
@@ -24,6 +23,10 @@ class WorkerData:
     def save_category(self, category_name):
         with open(self.categories_filepath, "a") as file:
             file.write(category_name + "\n")
+
+    def get_expenses(self):
+        with open(self.expenses_filepath, "r") as file:
+            return [Expense(*line.strip().split(";")) for line in file.readlines()]
 
     def save_expense(self, expense: Expense):
         with open(self.expenses_filepath, "a") as file:
@@ -34,6 +37,7 @@ class Worker:
     commands = {
         "add-category": "add_category",
         "add": "add_expense",
+        "list": "list_expenses",
     }
 
     def __init__(self, storage):
@@ -49,8 +53,8 @@ class Worker:
 
 
     def add_category(self, arguments):
-        if len(arguments) > 1:
-            raise WorkerException("Команда add-category принимает лишь один аргумент")
+        if (amount := len(arguments)) != 1:
+            raise WorkerException(f"Команда add-category принимает один аргумент. (Было передано {amount})")
 
         category_name = arguments[0]
         available_categories = self.storage.get_categories()
@@ -61,12 +65,30 @@ class Worker:
 
     def add_expense(self, arguments):
         if (amount := len(arguments)) != 3:
-            raise WorkerException(f"Команда 'add' принимает на вход 3 аргумента. Было передано ({amount})")
+            raise WorkerException(f"Команда 'add' принимает на вход 3 аргумента. (Было передано: {amount})")
 
         cost, category_name, name = arguments
 
         if category_name not in self.storage.get_categories():
             raise WorkerException(f"Категория '{category_name}' не существует")
 
-        expense = Expense(name=name, cost=cost, category_name=category_name)
+        expense = Expense(cost=cost, category_name=category_name, name=name)
         self.storage.save_expense(expense)
+
+    def list_expenses(self, arguments):
+        if (amount := len(arguments)) > 1:
+            raise WorkerException(f"Команда 'list' принимает на вход 1 опциональный аргумент. (Было передано: {amount})")
+
+        expenses = self.storage.get_expenses()
+        category_string = ""
+        if amount:
+            category_name = arguments[0]
+            if category_name not in self.storage.get_categories():
+                raise WorkerException(f"Категория '{category_name}' не существует")
+
+            expenses = list(filter(lambda ex: ex.category_name == category_name, expenses))
+            category_string = f"(Категория: '{category_name}') "
+
+        print(f"========== РАСХОДЫ {category_string}===========")
+        for number, ex in enumerate(expenses, start=1):
+            print(f"  [{number}] {ex}")
