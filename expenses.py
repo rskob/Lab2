@@ -1,6 +1,6 @@
 import sys
 from worker import Worker, WorkerData
-from tools import WorkerException, ExpenseException
+from custom_exceptions import WorkerException, ExpenseException
 from settings import *
 
 

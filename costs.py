@@ -1,5 +1,5 @@
 import math
-from tools import ExpenseException
+from custom_exceptions import ExpenseException
 
 
 class Expense:
