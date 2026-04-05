@@ -3,7 +3,7 @@ from tools import ExpenseException
 
 
 class Expense:
-    def __init__(self, cost: str, category_name: str, name: str):
+    def __init__(self, cost: str, category_name: str, name: str) -> None:
         try:
             f_cost = float(cost)
         except ValueError:
@@ -16,9 +16,9 @@ class Expense:
         self.cost = round(f_cost, 2)
         self.category_name = category_name
 
-    def to_csv(self):
+    def to_csv(self) -> str:
         return f"{self.cost};{self.category_name};{self.name}"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.name}\n  ├─ Категория: {self.category_name}\n  └─ Стоимость: {self.cost:.2f}"
 

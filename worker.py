@@ -4,31 +4,31 @@ from costs import Expense
 
 
 class WorkerData:
-    def __init__(self, expenses_filepath, categories_filepath):
+    def __init__(self, expenses_filepath, categories_filepath) -> None:
         self.expenses_filepath = expenses_filepath
         self.categories_filepath = categories_filepath
 
         self.__prepare_storage()
 
-    def __prepare_storage(self):
+    def __prepare_storage(self) -> None:
         os.makedirs(os.path.dirname(self.categories_filepath), exist_ok=True)
 
         open(self.expenses_filepath, "a", encoding="utf-8").close()
         open(self.categories_filepath, "a", encoding="utf-8").close()
 
-    def get_categories(self):
+    def get_categories(self) -> list[str]:
         with open(self.categories_filepath, "r", encoding="utf-8") as file:
             return [line.strip() for line in file.readlines()]
 
-    def save_category(self, category_name):
+    def save_category(self, category_name: str) -> None:
         with open(self.categories_filepath, "a", encoding="utf-8") as file:
             file.write(category_name + "\n")
 
-    def get_expenses(self):
+    def get_expenses(self) -> list[Expense]:
         with open(self.expenses_filepath, "r", encoding="utf-8") as file:
             return [Expense(*line.strip().split(";")) for line in file.readlines()]
 
-    def save_expense(self, expense: Expense):
+    def save_expense(self, expense: Expense) -> None:
         with open(self.expenses_filepath, "a", encoding="utf-8") as file:
             file.write(expense.to_csv() + "\n")
 
@@ -41,18 +41,18 @@ class Worker:
         "total": "get_total",
     }
 
-    def __init__(self, storage):
+    def __init__(self, storage: WorkerData) -> None:
         self.storage = storage
 
-    def execute(self, arguments):
+    def execute(self, arguments: list[str]) -> None:
         command_name = self.commands.get(arguments[1])
         method = getattr(self, command_name, None)
         if method:
-            return method(command_name, arguments[2:])
+            method(command_name, arguments[2:])
         else:
             raise WorkerException("Нет такой команды")
 
-    def add_category(self, command_name, arguments):
+    def add_category(self, command_name: str, arguments: list[str]) -> None:
         if (amount := len(arguments)) != 1:
             raise WorkerException(f"Команда '{command_name}' принимает один аргумент. (Было передано {amount})")
 
@@ -63,7 +63,7 @@ class Worker:
         else:
             self.storage.save_category(category_name)
 
-    def add_expense(self, command_name, arguments):
+    def add_expense(self, command_name: str, arguments: list[str]) -> None:
         if (amount := len(arguments)) != 3:
             raise WorkerException(f"Команда '{command_name}' принимает на вход 3 аргумента. (Было передано: {amount})")
 
@@ -75,7 +75,7 @@ class Worker:
         expense = Expense(cost=cost, category_name=category_name, name=name)
         self.storage.save_expense(expense)
 
-    def list_expenses(self, command_name, arguments):
+    def list_expenses(self, command_name: str, arguments: list[str]) -> None:
         if (amount := len(arguments)) > 1:
             raise WorkerException(f"Команда '{command_name}' принимает на вход 1 опциональный аргумент. (Было передано: {amount})")
 
@@ -93,7 +93,7 @@ class Worker:
         for number, ex in enumerate(expenses, start=1):
             print(f"  [{number}] {ex}")
 
-    def get_total(self, command_name, arguments):
+    def get_total(self, command_name: str, arguments: list[str]) -> None:
         if (amount := len(arguments)) > 1:
             raise WorkerException(f"Команда '{command_name}' принимает на вход 1 опциональный аргумент. (Было передано: {amount})")
 
