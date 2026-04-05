@@ -38,10 +38,14 @@ class Worker:
         "add-category": "add_category",
         "add": "add_expense",
         "list": "list_expenses",
+        "total": "get_total",
     }
 
     def __init__(self, storage):
         self.storage = storage
+
+    def __resolve(self, method_name: str) -> str:
+        return {m_name: c_name for c_name, m_name in self.commands.items()}[method_name]
 
     def execute(self, arguments):
         command_name = self.commands.get(arguments[1])
@@ -50,7 +54,6 @@ class Worker:
             return method(arguments[2:])
         else:
             raise WorkerException("Нет такой команды")
-
 
     def add_category(self, arguments):
         if (amount := len(arguments)) != 1:
@@ -92,3 +95,21 @@ class Worker:
         print(f"========== РАСХОДЫ {category_string}===========")
         for number, ex in enumerate(expenses, start=1):
             print(f"  [{number}] {ex}")
+
+    def get_total(self, arguments):
+        if (amount := len(arguments)) > 1:
+            raise WorkerException(f"Команда 'total' принимает на вход 1 опциональный аргумент. (Было передано: {amount})")
+
+        expenses = self.storage.get_expenses()
+        category_string = ""
+        if amount:
+            category_name = arguments[0]
+            if category_name not in self.storage.get_categories():
+                raise WorkerException(f"Категория '{category_name}' не существует")
+
+            expenses = list(filter(lambda ex: ex.category_name == category_name, expenses))
+            category_string = f" (Категория: '{category_name}')"
+
+        total = sum(ex.cost for ex in expenses)
+        print(f"Суммарная стоимость расходов{category_string}: {total}")
+
