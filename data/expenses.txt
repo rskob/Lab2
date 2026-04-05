@@ -1,3 +1,2 @@
-333.0;first;ex1cdcefecece
-333.0;second;ex2
-222.34;second;ex3
+150.5;Еда;Обед
+1000.0;Досуг;Кино

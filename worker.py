@@ -13,23 +13,23 @@ class WorkerData:
     def __prepare_storage(self):
         os.makedirs(os.path.dirname(self.categories_filepath), exist_ok=True)
 
-        open(self.expenses_filepath, "a").close()
-        open(self.categories_filepath, "a").close()
+        open(self.expenses_filepath, "a", encoding="utf-8").close()
+        open(self.categories_filepath, "a", encoding="utf-8").close()
 
     def get_categories(self):
-        with open(self.categories_filepath, "r") as file:
+        with open(self.categories_filepath, "r", encoding="utf-8") as file:
             return [line.strip() for line in file.readlines()]
 
     def save_category(self, category_name):
-        with open(self.categories_filepath, "a") as file:
+        with open(self.categories_filepath, "a", encoding="utf-8") as file:
             file.write(category_name + "\n")
 
     def get_expenses(self):
-        with open(self.expenses_filepath, "r") as file:
+        with open(self.expenses_filepath, "r", encoding="utf-8") as file:
             return [Expense(*line.strip().split(";")) for line in file.readlines()]
 
     def save_expense(self, expense: Expense):
-        with open(self.expenses_filepath, "a") as file:
+        with open(self.expenses_filepath, "a", encoding="utf-8") as file:
             file.write(expense.to_csv() + "\n")
 
 
@@ -44,20 +44,17 @@ class Worker:
     def __init__(self, storage):
         self.storage = storage
 
-    def __resolve(self, method_name: str) -> str:
-        return {m_name: c_name for c_name, m_name in self.commands.items()}[method_name]
-
     def execute(self, arguments):
         command_name = self.commands.get(arguments[1])
         method = getattr(self, command_name, None)
         if method:
-            return method(arguments[2:])
+            return method(command_name, arguments[2:])
         else:
             raise WorkerException("Нет такой команды")
 
-    def add_category(self, arguments):
+    def add_category(self, command_name, arguments):
         if (amount := len(arguments)) != 1:
-            raise WorkerException(f"Команда add-category принимает один аргумент. (Было передано {amount})")
+            raise WorkerException(f"Команда '{command_name}' принимает один аргумент. (Было передано {amount})")
 
         category_name = arguments[0]
         available_categories = self.storage.get_categories()
@@ -66,9 +63,9 @@ class Worker:
         else:
             self.storage.save_category(category_name)
 
-    def add_expense(self, arguments):
+    def add_expense(self, command_name, arguments):
         if (amount := len(arguments)) != 3:
-            raise WorkerException(f"Команда 'add' принимает на вход 3 аргумента. (Было передано: {amount})")
+            raise WorkerException(f"Команда '{command_name}' принимает на вход 3 аргумента. (Было передано: {amount})")
 
         cost, category_name, name = arguments
 
@@ -78,9 +75,9 @@ class Worker:
         expense = Expense(cost=cost, category_name=category_name, name=name)
         self.storage.save_expense(expense)
 
-    def list_expenses(self, arguments):
+    def list_expenses(self, command_name, arguments):
         if (amount := len(arguments)) > 1:
-            raise WorkerException(f"Команда 'list' принимает на вход 1 опциональный аргумент. (Было передано: {amount})")
+            raise WorkerException(f"Команда '{command_name}' принимает на вход 1 опциональный аргумент. (Было передано: {amount})")
 
         expenses = self.storage.get_expenses()
         category_string = ""
@@ -96,9 +93,9 @@ class Worker:
         for number, ex in enumerate(expenses, start=1):
             print(f"  [{number}] {ex}")
 
-    def get_total(self, arguments):
+    def get_total(self, command_name, arguments):
         if (amount := len(arguments)) > 1:
-            raise WorkerException(f"Команда 'total' принимает на вход 1 опциональный аргумент. (Было передано: {amount})")
+            raise WorkerException(f"Команда '{command_name}' принимает на вход 1 опциональный аргумент. (Было передано: {amount})")
 
         expenses = self.storage.get_expenses()
         category_string = ""
@@ -111,5 +108,4 @@ class Worker:
             category_string = f" (Категория: '{category_name}')"
 
         total = sum(ex.cost for ex in expenses)
-        print(f"Суммарная стоимость расходов{category_string}: {total}")
-
+        print(f"Суммарная стоимость расходов{category_string}: {total:.2f}")
