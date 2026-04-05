@@ -1,0 +1,7 @@
+150.5;Food;Groceries
+3.14;Food;Coffee
+45.0;Transport;Subway
+12.99;Food;Vegan Burger
+10000000.0;Transport;Spaceship
+333.0;Food;main dd
+3930.0;dd dd3;tf is this

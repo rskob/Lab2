@@ -4,7 +4,7 @@ from costs import Expense
 
 
 class WorkerData:
-    def __init__(self, expenses_filepath, categories_filepath) -> None:
+    def __init__(self, expenses_filepath: str, categories_filepath: str) -> None:
         self.expenses_filepath = expenses_filepath
         self.categories_filepath = categories_filepath
 
@@ -45,46 +45,55 @@ class Worker:
         self.storage = storage
 
     def execute(self, arguments: list[str]) -> None:
-        command_name = self.commands.get(arguments[1])
+        if len(arguments) < 2:
+            raise WorkerException(f"недопустимое использование -> 'python {arguments[0]}'."
+                                  f" Правильное использование: 'python {arguments[0]} <command> [arguments]'.")
+
+        command_name = self.commands.get(arguments[1], "")
         method = getattr(self, command_name, None)
         if method:
             method(command_name, arguments[2:])
         else:
-            raise WorkerException("Нет такой команды")
+            raise WorkerException(f"команда '{arguments[1]}' не существует.")
 
     def add_category(self, command_name: str, arguments: list[str]) -> None:
         if (amount := len(arguments)) != 1:
-            raise WorkerException(f"Команда '{command_name}' принимает один аргумент. (Было передано {amount})")
-
+            raise WorkerException(f"команда '{command_name}' принимает на вход 1 аргумент."
+                                  f" Было передано {amount} {tuple(arguments)}.")
         category_name = arguments[0]
-        available_categories = self.storage.get_categories()
-        if category_name in available_categories:
-            raise WorkerException(f"Такая категория уже существует: '{category_name}'")
+        categories = self.storage.get_categories()
+        if category_name in categories:
+            raise WorkerException(f"такая категория уже существует -> '{category_name}'.")
+        elif not all(char.isalnum() or char.isspace() for char in category_name):
+            raise WorkerException(f"недопустимое название категории -> '{category_name}'."
+                                  " Название категории может содержать только буквы, цифры и пробелы.")
         else:
             self.storage.save_category(category_name)
 
     def add_expense(self, command_name: str, arguments: list[str]) -> None:
         if (amount := len(arguments)) != 3:
-            raise WorkerException(f"Команда '{command_name}' принимает на вход 3 аргумента. (Было передано: {amount})")
+            raise WorkerException(f"команда '{command_name}' принимает на вход 3 аргумента."
+                                  f" Было передано: {amount} {tuple(arguments)}")
 
         cost, category_name, name = arguments
 
         if category_name not in self.storage.get_categories():
-            raise WorkerException(f"Категория '{category_name}' не существует")
+            raise WorkerException(f"категория не существует -> '{category_name}'")
 
         expense = Expense(cost=cost, category_name=category_name, name=name)
         self.storage.save_expense(expense)
 
     def list_expenses(self, command_name: str, arguments: list[str]) -> None:
         if (amount := len(arguments)) > 1:
-            raise WorkerException(f"Команда '{command_name}' принимает на вход 1 опциональный аргумент. (Было передано: {amount})")
+            raise WorkerException(f"команда '{command_name}' принимает на вход 1 опциональный аргумент."
+                                  f" Было передано: {amount} {tuple(arguments)}")
 
         expenses = self.storage.get_expenses()
         category_string = ""
         if amount:
             category_name = arguments[0]
             if category_name not in self.storage.get_categories():
-                raise WorkerException(f"Категория '{category_name}' не существует")
+                raise WorkerException(f"категория не существует -> ")
 
             expenses = list(filter(lambda ex: ex.category_name == category_name, expenses))
             category_string = f"(Категория: '{category_name}') "
@@ -95,14 +104,15 @@ class Worker:
 
     def get_total(self, command_name: str, arguments: list[str]) -> None:
         if (amount := len(arguments)) > 1:
-            raise WorkerException(f"Команда '{command_name}' принимает на вход 1 опциональный аргумент. (Было передано: {amount})")
+            raise WorkerException(f"команда '{command_name}' принимает на вход 1 опциональный аргумент."
+                                  f" Было передано: {amount} {tuple(arguments)}")
 
         expenses = self.storage.get_expenses()
         category_string = ""
         if amount:
             category_name = arguments[0]
             if category_name not in self.storage.get_categories():
-                raise WorkerException(f"Категория '{category_name}' не существует")
+                raise WorkerException(f"категория не существует -> '{category_name}'")
 
             expenses = list(filter(lambda ex: ex.category_name == category_name, expenses))
             category_string = f" (Категория: '{category_name}')"
