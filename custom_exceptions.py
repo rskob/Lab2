@@ -12,3 +12,7 @@ class WorkerException(MainException):
 
 class ExpenseException(MainException):
     pass
+
+
+class CommandException(MainException):
+    default_message = "Ошибка валидации аргументов: "

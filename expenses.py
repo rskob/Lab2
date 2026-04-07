@@ -1,6 +1,6 @@
 import sys
 from worker import Worker, WorkerData
-from custom_exceptions import WorkerException, ExpenseException
+from custom_exceptions import MainException
 from settings import *
 
 
@@ -10,5 +10,5 @@ if __name__ == "__main__":
 
     try:
         worker.execute(sys.argv)
-    except (WorkerException, ExpenseException) as exception:
+    except MainException as exception:
         print(*exception.args)

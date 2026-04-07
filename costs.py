@@ -12,10 +12,11 @@ class Expense:
             f_cost = float(cost)
         except ValueError:
             raise ExpenseException(f"недопустимая стоимость расхода -> '{cost}'."
-                                   f" Стоимость должна быть положительным числом.")
+                                   f" Стоимость расхода должна быть положительным числом.")
 
         if f_cost <= 0 or not math.isfinite(f_cost):
-            raise ExpenseException(f"недопустимая стоимость -> '{cost}'. Стоимость должна быть положительным числом.")
+            raise ExpenseException(f"недопустимая стоимость расхода -> '{cost}'."
+                                   f" Стоимость расхода должна быть положительным числом.")
 
         self.name = name
         self.cost = round(f_cost, 2)
