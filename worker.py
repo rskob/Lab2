@@ -140,4 +140,4 @@ class Worker(metaclass=WorkerMeta):
             category_name = arguments[0]
             category = self.storage.get_category(category_name)
 
-        BeautyWorker.print_expenses(expenses, category)
+        BeautyWorker.print_total(expenses, category)

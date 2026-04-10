@@ -12,15 +12,15 @@ class MainException(Exception):
 
 
 class WorkerException(MainException):
-    pass
+    default_message = "Ошибка выполнения: "
 
 
 class ExpenseException(MainException):
-    pass
+    default_message = "Некорректные данные расхода: "
 
 
 class CategoryException(MainException):
-    pass
+    default_message = "Некорректные данные категории: "
 
 
 class CommandException(MainException):

@@ -11,13 +11,13 @@ class Category:
                                     " пробелы и символы нижнего подчёркивания.\n"
                                     "Также оно не может быть пустой строкой и состоять только их пробелов.")
 
-        self.name = category_name
+        self.name = category_name.strip()
 
     @staticmethod
     def validate_name(category_name: str):
         """Валидация названия категории"""
         return category_name and not all(char == " " for char in category_name) and \
-               all(char.isalnum() or char.isspace() or char == "_" for char in category_name)
+               all(char.isalnum() or char in (" ", "_") for char in category_name)
 
     def to_csv(self):
         """Возвращает информацию об объекте в виде <название>. Метод реализован для масштабируемости."""
@@ -42,11 +42,11 @@ class Expense:
                                    f"Также оно не может быть пустой строкой и состоять только их пробелов.")
         if not (f_cost := self.validate_cost(cost)):
             raise ExpenseException(f"недопустимая стоимость расхода -> '{cost}'."
-                                   f" Стоимость расхода должна быть положительным числом ( >= 0.01).")
+                                f" Стоимость расхода должна быть положительным числом (0.01 <= стоимость <= 10 ^ 13).")
 
         # Нет смысла в валидации категории, так как некорректная категория не была бы добавлена в файл
-        self.name = name  # Название расхода
-        self.cost = round(f_cost, 2)  # Стоимость расхода
+        self.name = name.strip()  # Название расхода
+        self.cost = math.trunc(f_cost * 100) / 100  # Стоимость расхода (Оставляем только 2 знака после запятой)
         self.category = category  # Экземпляр класса Category
 
     def to_csv(self) -> str:
@@ -61,14 +61,14 @@ class Expense:
     def validate_name(name: str) -> bool:
         """Валидация имени"""
         return name and not all(char == " " for char in name) and \
-               all(char.isalnum() or char.isspace() or char == "_" for char in name)
+               all(char.isalnum() or char in (" ", "_") for char in name)
 
     @staticmethod
-    def validate_cost(cost: str) -> bool or int:
+    def validate_cost(cost: str) -> bool | int:
         """Валидация цены"""
         try:
             f_cost = float(cost)
         except ValueError:
             return False
 
-        return f_cost if f_cost > 0 and math.isfinite(f_cost) and f_cost >= 0.01 else False
+        return f_cost if math.isfinite(f_cost) and 0.01 <= f_cost <= 1e13 else False

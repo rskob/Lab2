@@ -124,6 +124,7 @@ class WorkerMeta(type):
 class BeautyWorker:
     @staticmethod
     def print_expenses(expenses: list[Expense], category: Category | None = None) -> None:
+        """Выводит на экран все расходы по категории, если она указана. В противном случае все расходы"""
         if category:
             expenses = filter(lambda exp: exp.category == category, expenses)
             head = f"========== РАСХОДЫ (Категория: '{category}') ==========="
@@ -136,8 +137,9 @@ class BeautyWorker:
 
     @staticmethod
     def print_total(expenses: list[Expense], category: Category | None = None) -> None:
+        """Выводит на экран"""
         if category:
-            category_string = f" {category}"
+            category_string = f" (Категория: '{category}')"
             expenses = filter(lambda exp: exp.category == category, expenses)
         else:
             category_string = ""
