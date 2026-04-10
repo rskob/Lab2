@@ -1,75 +1,143 @@
 from custom_exceptions import WorkerException
-from costs import Expense
-from worker_tools import WorkerData, WorkerMeta, Command
+from costs import Category
+from worker_tools import WorkerData, WorkerMeta, Command, register, BeautyWorker
 
 
 class Worker(metaclass=WorkerMeta):
-    commands: dict[str, Command]
+    """Класс, отвечающий за весь функционал приложения."""
+    commands: dict[str, Command]  # Формируется перед созданием самого класса Worker при помощи WorkerMeta
 
     def __init__(self, storage: WorkerData) -> None:
-        self.storage = storage
+        """Инициализация работника"""
+        self.storage = storage  # Объект класса WorkerData, который непосредственно работает с информацией
 
     def execute(self, arguments: list[str]) -> None:
+        """
+        Анализирует введённые аргументы командной строки и вызывает соответствующий метод
+
+        Аргументы:
+            arguments -- список строк из sys.argv, аргументы командной строки, введённые через пробел
+            (начинаются с названия исполняемого файла).
+
+        Возвращаемое значение:
+            None: методы, которые являются реализацией команд приложения, ничего не возвращают.
+
+        Исключения:
+            WorkerException:
+                1) Не было передано никаких аргументов
+                2) Введённая команда не существует
+        """
         if len(arguments) < 2:
             raise WorkerException(f"недопустимое использование -> 'python {arguments[0]}'."
                                   f" Правильное использование: 'python {arguments[0]} <command> [arguments]'.")
 
-        command_name = arguments[1]
-        command = self.commands.get(command_name, None)
-        if command:
+        command_name = arguments[1]  # Введённая команда
+        if self.command_exists(command_name):
+            command = self.commands[command_name]
             command(self, arguments[2:])
         else:
             raise WorkerException(f"команда '{arguments[1]}' не существует.")
 
-    @WorkerMeta.register("add-category", "python expenses.py add-category <категория>", 1, 1)
+    @register("add-category", "python expenses.py add-category <категория>", 1, 1)
     def add_category(self, arguments: list[str]) -> None:
+        """
+        Реализация команды 'add-category'. Добавляет категорию в файл (CATEGORIES_FILEPATH), указанный в файле настроек.
+
+        Аргументы:
+            arguments -- список строк из sys.argv, аргументы командной строки, введённые через пробел
+            (начинаются с первого аргумента, переданного после названия исполняемого файла).
+
+        Возвращаемое значение:
+            None: метод ничего не возвращает
+
+        Исключения:
+            CategoryException:
+                1) Категория уже существует
+                2) Недопустимое название категории
+            CommandException:
+                1) Неверное количество аргументов (допустимое количество: 1)
+        """
         category_name = arguments[0]
-        if self.storage.category_exists(category_name):
-            raise WorkerException(f"такая категория уже существует -> '{category_name}'.")
-        elif not all(char.isalnum() or char.isspace() or char == "_" for char in category_name):
-            raise WorkerException(f"недопустимое название категории -> '{category_name}'."
-                                  " Название категории может содержать только буквы, цифры,"
-                                  " пробелы и нижние подчёркивания.")
-        else:
-            self.storage.save_category(category_name)
+        category = Category(category_name)
+        self.storage.save_category(category)
 
-    @WorkerMeta.register("add", "python expenses.py add <стоимость> <категория> <название>", 3, 3)
+    def command_exists(self, command_name: str) -> bool:
+        """Проверяет, существует ли указанная команда"""
+        return command_name in self.commands
+
+    @register("add", "python expenses.py add <стоимость> <категория> <название>", 3, 3)
     def add_expense(self, arguments: list[str]) -> None:
+        """
+        Реализация команды 'add'. Записывает информацию о расходе (<стоимость>;<категория>;<название>)
+        в файл (EXPENSES_FILEPATH), указанный в файле настроек.
+
+        Аргументы:
+            arguments -- список строк из sys.argv, аргументы командной строки, введённые через пробел
+            (начинаются с первого аргумента, переданного после названия исполняемого файла).
+
+        Возвращаемое значение:
+            None: метод ничего не возвращает
+
+        Исключения:
+            CategoryException:
+                1) Категория не существует
+            CommandException:
+                1) Неверное количество аргументов (допустимое количество: 3)
+            ExpenseException:
+                1) Введена некорректная стоимость (не положительное число)
+                2) Введено некорректное название (не только буквы, цифры, пробелы и символы нижнего подчёркивания)
+        """
         cost, category_name, name = arguments
-
-        if not self.storage.category_exists(category_name):
-            raise WorkerException(f"категория не существует -> '{category_name}'")
-
-        expense = Expense(cost=cost, category_name=category_name, name=name)
+        category = self.storage.get_category(category_name)
+        expense = self.storage.create_expense(cost=cost, category=category, name=name)
         self.storage.save_expense(expense)
 
-    @WorkerMeta.register("list", "python expenses.py list [категория]", 0, 1)
+    @register("list", "python expenses.py list [категория]", 0, 1)
     def list_expenses(self, arguments: list[str]) -> None:
+        """
+        Реализация команды 'list'. Выводит информацию о расходах по категории, если категория указана.
+        В противном случае выводится информация о всех расходах.
+
+        Аргументы:
+            arguments -- список строк из sys.argv, аргументы командной строки, введённые через пробел
+            (начинаются с первого аргумента, переданного после названия исполняемого файла).
+
+        Возвращаемое значение:
+            None: метод ничего не возвращает
+
+        Исключения:
+            CategoryException:
+                1) Категория не существует
+        """
         expenses = self.storage.get_expenses()
-        category_string = ""
+        category = None
         if len(arguments):
             category_name = arguments[0]
-            if not self.storage.category_exists(category_name):
-                raise WorkerException(f"категория не существует -> '{category_name}'.")
+            category = self.storage.get_category(category_name)
 
-            expenses = list(filter(lambda ex: ex.category_name == category_name, expenses))
-            category_string = f"(Категория: '{category_name}') "
+        BeautyWorker.print_expenses(expenses, category)
 
-        print(f"========== РАСХОДЫ {category_string}===========")
-        for number, ex in enumerate(expenses, start=1):
-            print(f"  [{number}] {ex}")
-
-    @WorkerMeta.register("total", "python expenses.py total [категория]", 0, 1)
+    @register("total", "python expenses.py total [категория]", 0, 1)
     def get_total(self, arguments: list[str]) -> None:
+        """
+        Реализация команды 'total'. Выводит сумму расходов по категории, если категория указана.
+        В противном случае выводит сумму всех расходов.
+
+        Аргументы:
+            arguments -- список строк из sys.argv, аргументы командной строки, введённые через пробел
+            (начинаются с первого аргумента, переданного после названия исполняемого файла).
+
+        Возвращаемое значение:
+            None: метод ничего не возвращает
+
+        Исключения:
+            CategoryException:
+                1) Категория не существует
+        """
         expenses = self.storage.get_expenses()
-        category_string = ""
+        category = None
         if len(arguments):
             category_name = arguments[0]
-            if not self.storage.category_exists(category_name):
-                raise WorkerException(f"категория не существует -> '{category_name}'.")
+            category = self.storage.get_category(category_name)
 
-            expenses = list(filter(lambda ex: ex.category_name == category_name, expenses))
-            category_string = f" (Категория: '{category_name}')"
-
-        total = sum(ex.cost for ex in expenses)
-        print(f"Суммарная стоимость расходов{category_string}: {total:.2f}")
+        BeautyWorker.print_expenses(expenses, category)
