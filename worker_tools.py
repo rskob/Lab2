@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from typing import Callable
 from costs import Expense, Category
 from custom_exceptions import CommandException, CategoryException
@@ -47,11 +47,11 @@ class WorkerData:
         self.__prepare_storage()  # Подготовка хранилища к работе
 
     def __prepare_storage(self) -> None:
-        """Создаёт файлы, если они не существуют, и директорию, в которой они находятся, если она указана в пути"""
-        os.makedirs(os.path.dirname(self.categories_filepath), exist_ok=True)
-
-        open(self.expenses_filepath, "a", encoding="utf-8").close()
-        open(self.categories_filepath, "a", encoding="utf-8").close()
+        """Создаёт файлы, если они не существуют, и директории, в которых они находятся, если они указана в пути"""
+        for filepath in (self.expenses_filepath, self.categories_filepath):
+            path = Path(filepath)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.touch(exist_ok=True)
 
     def get_categories(self) -> list[str]:
         """Возвращает список названий имеющихся категорий"""
@@ -73,7 +73,7 @@ class WorkerData:
     def get_category(self, category_name: str) -> Category:
         """Возвращает экземпляр класса Category"""
         if not self.category_exists(category_name):
-            raise CommandException(f"категория не существует -> '{category_name}'.")
+            raise CategoryException(f"категория не существует -> '{category_name}'.")
 
         return Category(category_name)
 

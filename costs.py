@@ -8,26 +8,26 @@ class Category:
         if not self.validate_name(category_name):
             raise CategoryException(f"недопустимое название категории -> '{category_name}'."
                                     " Название категории может содержать только буквы, цифры,"
-                                    " пробелы и символы нижнего подчёркивания.\n"
+                                    " пробелы и символы ' ', '-', '_'.\n"
                                     "Также оно не может быть пустой строкой и состоять только их пробелов.")
 
         self.name = category_name.strip()
 
     @staticmethod
-    def validate_name(category_name: str):
+    def validate_name(category_name: str) -> bool:
         """Валидация названия категории"""
         return category_name and not all(char == " " for char in category_name) and \
-               all(char.isalnum() or char in (" ", "_") for char in category_name)
+               all(char.isalnum() or char in (" ", "_", "-") for char in category_name)
 
-    def to_csv(self):
+    def to_csv(self) -> str:
         """Возвращает информацию об объекте в виде <название>. Метод реализован для масштабируемости."""
         return f"{self.name}"
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Метод, необходимый для корректной работы с данными. Представляет класс в виде строки '<название>'."""
         return self.name
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """Реализация логики сравнения двух категорий."""
         return self.name == other.name
 
@@ -38,7 +38,7 @@ class Expense:
         if not self.validate_name(name):
             raise ExpenseException(f"недопустимое название расхода -> '{name}'."
                                    f" Название расхода должно содержать только буквы, цифры,"
-                                   f" пробелы и символы нижнего подчёркивания.\n"
+                                   f" пробелы и символы ' ', '-', '_'.\n"
                                    f"Также оно не может быть пустой строкой и состоять только их пробелов.")
         if not (f_cost := self.validate_cost(cost)):
             raise ExpenseException(f"недопустимая стоимость расхода -> '{cost}'."
@@ -61,7 +61,7 @@ class Expense:
     def validate_name(name: str) -> bool:
         """Валидация имени"""
         return name and not all(char == " " for char in name) and \
-               all(char.isalnum() or char in (" ", "_") for char in name)
+               all(char.isalnum() or char in (" ", "_", "-") for char in name)
 
     @staticmethod
     def validate_cost(cost: str) -> bool | int:
