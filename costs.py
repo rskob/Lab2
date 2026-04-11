@@ -8,7 +8,7 @@ class Category:
         if not self.validate_name(category_name):
             raise CategoryException(f"недопустимое название категории -> '{category_name}'."
                                     " Название категории может содержать только буквы, цифры,"
-                                    " пробелы и символы ' ', '-', '_'.\n"
+                                    " пробелы и символы ' ', '-', '_', '&'.\n"
                                     "Также оно не может быть пустой строкой и состоять только их пробелов.")
 
         self.name = category_name.strip()
@@ -17,7 +17,7 @@ class Category:
     def validate_name(category_name: str) -> bool:
         """Валидация названия категории"""
         return category_name and not all(char == " " for char in category_name) and \
-               all(char.isalnum() or char in (" ", "_", "-") for char in category_name)
+               all(char.isalnum() or char in (" ", "_", "-", "&") for char in category_name)
 
     def to_csv(self) -> str:
         """Возвращает информацию об объекте в виде <название>. Метод реализован для масштабируемости."""
@@ -38,13 +38,14 @@ class Expense:
         if not self.validate_name(name):
             raise ExpenseException(f"недопустимое название расхода -> '{name}'."
                                    f" Название расхода должно содержать только буквы, цифры,"
-                                   f" пробелы и символы ' ', '-', '_'.\n"
+                                   f" пробелы и символы ' ', '-', '_', '&'.\n"
                                    f"Также оно не может быть пустой строкой и состоять только их пробелов.")
         if not (f_cost := self.validate_cost(cost)):
             raise ExpenseException(f"недопустимая стоимость расхода -> '{cost}'."
-                                f" Стоимость расхода должна быть положительным числом (0.01 <= стоимость <= 10 ^ 13).")
+                                   f" Стоимость расхода должна быть положительным числом"
+                                   f" (0.01 <= стоимость <= 10 ^ 13).")
 
-        # Нет смысла в валидации категории, так как некорректная категория не была бы добавлена в файл
+            # Нет смысла в валидации категории, так как некорректная категория не была бы добавлена в файл
         self.name = name.strip()  # Название расхода
         self.cost = math.trunc(f_cost * 100) / 100  # Стоимость расхода (Оставляем только 2 знака после запятой)
         self.category = category  # Экземпляр класса Category
@@ -61,7 +62,7 @@ class Expense:
     def validate_name(name: str) -> bool:
         """Валидация имени"""
         return name and not all(char == " " for char in name) and \
-               all(char.isalnum() or char in (" ", "_", "-") for char in name)
+               all(char.isalnum() or char in (" ", "_", "-", "&") for char in name)
 
     @staticmethod
     def validate_cost(cost: str) -> bool | int:

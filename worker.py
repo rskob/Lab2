@@ -1,5 +1,4 @@
 from custom_exceptions import WorkerException
-from costs import Category
 from worker_tools import WorkerData, WorkerMeta, Command, register, BeautyWorker
 
 
@@ -58,7 +57,7 @@ class Worker(metaclass=WorkerMeta):
                 1) Неверное количество аргументов (допустимое количество: 1)
         """
         category_name = arguments[0]
-        category = Category(category_name)
+        category = self.storage.create_category(category_name)
         self.storage.save_category(category)
 
     def command_exists(self, command_name: str) -> bool:

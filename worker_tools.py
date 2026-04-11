@@ -47,20 +47,20 @@ class WorkerData:
         self.__prepare_storage()  # Подготовка хранилища к работе
 
     def __prepare_storage(self) -> None:
-        """Создаёт файлы, если они не существуют, и директории, в которых они находятся, если они указана в пути"""
+        """Создаёт файлы, если они не существуют, и директории, в которых они находятся, если они указаны в пути"""
         for filepath in (self.expenses_filepath, self.categories_filepath):
             path = Path(filepath)
             path.parent.mkdir(parents=True, exist_ok=True)
             path.touch(exist_ok=True)
 
-    def get_categories(self) -> list[str]:
+    def get_categories_names(self) -> list[str]:
         """Возвращает список названий имеющихся категорий"""
         with open(self.categories_filepath, "r", encoding="utf-8") as file:
             return [line.strip() for line in file.readlines()]
 
     def category_exists(self, category_name: str) -> bool:
         """Проверят, существует ли указанная категория"""
-        return category_name in self.get_categories()
+        return category_name.strip() in self.get_categories_names()
 
     def save_category(self, category: Category) -> None:
         """Записывает название категории в файл"""
@@ -70,8 +70,12 @@ class WorkerData:
         with open(self.categories_filepath, "a", encoding="utf-8") as file:
             file.write(category.to_csv() + "\n")
 
-    def get_category(self, category_name: str) -> Category:
+    def create_category(self, category_name: str) -> Category:
         """Возвращает экземпляр класса Category"""
+        return Category(category_name)
+
+    def get_category(self, category_name: str) -> Category:
+        """Возвращает экземпляр класса Category, если категория с таким именем существует"""
         if not self.category_exists(category_name):
             raise CategoryException(f"категория не существует -> '{category_name}'.")
 
@@ -137,7 +141,10 @@ class BeautyWorker:
 
     @staticmethod
     def print_total(expenses: list[Expense], category: Category | None = None) -> None:
-        """Выводит на экран"""
+        """
+        Выводит на экран сумму расходов по категории, если она указана.
+        В противном случае суммарную стоимость всех расходов.
+        """
         if category:
             category_string = f" (Категория: '{category}')"
             expenses = filter(lambda exp: exp.category == category, expenses)
@@ -146,8 +153,6 @@ class BeautyWorker:
 
         total = sum(map(lambda exp: exp.cost, expenses))
         print(f"Суммарная стоимость расходов{category_string}: {total:.2f}")
-
-
 
 
 def register(name: str, usage: str, min_args_number: int, max_args_number: int):

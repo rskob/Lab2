@@ -1,12 +1,15 @@
 class MainException(Exception):
     default_message = "Ошибка: "
 
-    def __init__(self, message) -> None:
+    def __init__(self, message: str) -> None:
         """
         Инициализация ошибки
 
         Добавляет в начало передаваемого сообщения значение default_message.
         """
+        if not message.endswith("."):
+            message += "."
+
         message = f"{self.default_message}{message}"
         super().__init__(message)
 
