@@ -19,10 +19,6 @@ class Category:
         return category_name and not all(char == " " for char in category_name) and \
                all(char.isalnum() or char in (" ", "_", "-", "&") for char in category_name)
 
-    def to_csv(self) -> str:
-        """Возвращает информацию об объекте в виде <название>. Метод реализован для масштабируемости."""
-        return f"{self.name}"
-
     def __str__(self) -> str:
         """Метод, необходимый для корректной работы с данными. Представляет класс в виде строки '<название>'."""
         return self.name
@@ -49,10 +45,6 @@ class Expense:
         self.name = name.strip()  # Название расхода
         self.cost = math.trunc(f_cost * 100) / 100  # Стоимость расхода (Оставляем только 2 знака после запятой)
         self.category = category  # Экземпляр класса Category
-
-    def to_csv(self) -> str:
-        """Представляет информацию о расходе в виде строки '<стоимость>;<категория>;<название>"""
-        return f"{self.cost};{self.category};{self.name}"
 
     def __str__(self) -> str:
         """Представляет расход в понятном виде"""

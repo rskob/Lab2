@@ -68,7 +68,7 @@ class WorkerData:
             raise CategoryException(f"такая категория уже существует -> '{category.name}'.")
 
         with open(self.categories_filepath, "a", encoding="utf-8") as file:
-            file.write(category.to_csv() + "\n")
+            file.write(self.serialize(category) + "\n")
 
     def create_category(self, category_name: str) -> Category:
         """Возвращает экземпляр класса Category"""
@@ -98,7 +98,13 @@ class WorkerData:
     def save_expense(self, expense: Expense) -> None:
         """Записывает информацию о расходе в файл"""
         with open(self.expenses_filepath, "a", encoding="utf-8") as file:
-            file.write(expense.to_csv() + "\n")
+            file.write(self.serialize(expense) + "\n")
+
+    def serialize(self, obj: Expense | Category) -> str:
+        """Возвращает строку данных объекта"""
+        if isinstance(obj, Expense):
+            return f"{obj.cost};{obj.category};{obj.name}"
+        return obj.name
 
 
 class WorkerMeta(type):
