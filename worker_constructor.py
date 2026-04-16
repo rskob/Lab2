@@ -1,7 +1,5 @@
-from pathlib import Path
 from typing import Callable
-from costs import Expense, Category
-from custom_exceptions import CommandException, CategoryException
+from custom_exceptions import CommandException
 
 
 class Command:

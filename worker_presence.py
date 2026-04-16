@@ -1,7 +1,6 @@
 from costs import Expense, Category
 
 
-
 def print_expenses(expenses: list[Expense], category: Category | None = None) -> None:
     """Выводит на экран все расходы по категории, если она указана. В противном случае все расходы"""
     if category:
