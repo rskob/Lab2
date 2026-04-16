@@ -6,7 +6,7 @@ from worker_presence import *
 
 class Worker(metaclass=WorkerMeta):
     """Класс, отвечающий за весь функционал приложения."""
-    commands: dict[str, Command]  # Формируется перед созданием самого класса Worker при помощи WorkerMeta
+    COMMANDS: dict[str, Command]  # Формируется перед созданием самого класса Worker при помощи WorkerMeta
 
     def __init__(self, storage: WorkerData) -> None:
         """Инициализация работника"""
@@ -34,7 +34,7 @@ class Worker(metaclass=WorkerMeta):
 
         command_name = arguments[1]  # Введённая команда
         if self.command_exists(command_name):
-            command = self.commands[command_name]
+            command = self.COMMANDS[command_name]
             command(self, arguments[2:])
         else:
             raise WorkerException(f"команда '{arguments[1]}' не существует.")
@@ -64,7 +64,7 @@ class Worker(metaclass=WorkerMeta):
 
     def command_exists(self, command_name: str) -> bool:
         """Проверяет, существует ли указанная команда"""
-        return command_name in self.commands
+        return command_name in self.COMMANDS
 
     @register("add", "python expenses.py add <стоимость> <категория> <название>", 3, 3)
     def add_expense(self, arguments: list[str]) -> None:

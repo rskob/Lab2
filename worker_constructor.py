@@ -57,7 +57,7 @@ class WorkerMeta(type):
                 commands[command_name] = Command(command_name, usage, attr_value, min_args_number, max_args_number)
                 del attr_value._register_metadata
 
-        attrs["commands"] = commands
+        attrs["COMMANDS"] = commands
         return super().__new__(mcs, name, bases, attrs)
 
 
