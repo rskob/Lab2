@@ -1,5 +1,7 @@
 from custom_exceptions import WorkerException
-from worker_tools import WorkerData, WorkerMeta, Command, register, BeautyWorker
+from worker_constructor import WorkerMeta, Command, register
+from worker_data import WorkerData
+from worker_presence import *
 
 
 class Worker(metaclass=WorkerMeta):
@@ -114,7 +116,7 @@ class Worker(metaclass=WorkerMeta):
             category_name = arguments[0]
             category = self.storage.get_category(category_name)
 
-        BeautyWorker.print_expenses(expenses, category)
+        print_expenses(expenses, category)
 
     @register("total", "python expenses.py total [категория]", 0, 1)
     def get_total(self, arguments: list[str]) -> None:
@@ -139,4 +141,4 @@ class Worker(metaclass=WorkerMeta):
             category_name = arguments[0]
             category = self.storage.get_category(category_name)
 
-        BeautyWorker.print_total(expenses, category)
+        print_total(expenses, category)
