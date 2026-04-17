@@ -9,6 +9,11 @@ class WorkerData:
         Expense: lambda obj: f"{obj.cost};{obj.category};{obj.name}"
     }
 
+    DESERIALIZERS = {
+        Expense: lambda string: Expense((data := string.split(";"))[0], Category(data[1]), data[2]),
+        Category: lambda string: Category(string)  # <- Пока что нет смысла в использовании
+    }
+
     def __init__(self, expenses_filepath: str, categories_filepath: str) -> None:
         self.expenses_filepath = expenses_filepath  # Путь к файлу, в котором хранится информация о расходах
         self.categories_filepath = categories_filepath  # Путь к файлу, в котором хранится информация о категориях
@@ -56,13 +61,8 @@ class WorkerData:
 
     def get_expenses(self) -> list[Expense]:
         """Возвращает информацию о расходах в виде списка, состоящего из экземпляров класса Expense"""
-        expenses = []
         with open(self.expenses_filepath, "r", encoding="utf-8") as file:
-            for line in file.readlines():
-                cost, category_name, name = line.strip().split(";")
-                category = Category(category_name)
-                expenses.append(Expense(cost=cost, category=category, name=name))
-        return expenses
+            return [self.deserialize(line.strip(), Expense) for line in file.readlines()]
 
     def save_expense(self, expense: Expense) -> None:
         """Записывает информацию о расходе в файл"""
@@ -72,3 +72,7 @@ class WorkerData:
     def serialize(self, obj) -> str:
         """Сериализирует передаваемый объект"""
         return self.SERIALIZERS[type(obj)](obj)
+
+    def deserialize(self, obj, obj_type) -> Category | Expense:
+        """Десериализирует передаваемую строку данных в соответствии с указанным типом объекта"""
+        return self.DESERIALIZERS[obj_type](obj)
