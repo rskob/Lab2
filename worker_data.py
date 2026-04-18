@@ -69,10 +69,10 @@ class WorkerData:
         with open(self.expenses_filepath, "a", encoding="utf-8") as file:
             file.write(self.serialize(expense) + "\n")
 
-    def serialize(self, obj) -> str:
+    def serialize(self, obj: Category | Expense) -> str:
         """Сериализирует передаваемый объект"""
         return self.SERIALIZERS[type(obj)](obj)
 
-    def deserialize(self, obj, obj_type) -> Category | Expense:
+    def deserialize(self, data: str, obj_type) -> Category | Expense:
         """Десериализирует передаваемую строку данных в соответствии с указанным типом объекта"""
-        return self.DESERIALIZERS[obj_type](obj)
+        return self.DESERIALIZERS[obj_type](data)

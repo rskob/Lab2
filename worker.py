@@ -1,7 +1,7 @@
 from custom_exceptions import WorkerException
 from worker_constructor import WorkerMeta, Command, register
 from worker_data import WorkerData
-from worker_presence import *
+from worker_presence import InfoWorker
 
 
 class Worker(metaclass=WorkerMeta):
@@ -116,7 +116,8 @@ class Worker(metaclass=WorkerMeta):
             category_name = arguments[0]
             category = self.storage.get_category(category_name)
 
-        print_expenses(expenses, category)
+        info = InfoWorker.get_expenses_info(expenses, category)
+        print(info)
 
     @register("total", "python expenses.py total [категория]", 0, 1)
     def get_total(self, arguments: list[str]) -> None:
@@ -141,4 +142,5 @@ class Worker(metaclass=WorkerMeta):
             category_name = arguments[0]
             category = self.storage.get_category(category_name)
 
-        print_total(expenses, category)
+        info = InfoWorker.get_total_info(expenses, category)
+        print(info)

@@ -47,7 +47,6 @@ class WorkerMeta(type):
         commands = {}
         for attr_name, attr_value in attrs.items():
             attr_name: str
-            attr_value: Callable
 
             if hasattr(attr_value, "_register_metadata"):
                 command_name = attr_value._register_metadata["name"]
